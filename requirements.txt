@@ -1,0 +1,10 @@
+streamlit
+google-generativeai
+fal-client
+yarngpt
+torchaudio
+pypdf
+pillow
+torch
+transformers
+nltk
