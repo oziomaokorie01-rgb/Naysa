@@ -1,0 +1,15 @@
+{
+  "name": "Senseii Hybrid Tutor",
+  "short_name": "Senseii Tutor",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1A1A1E",
+  "theme_color": "#8A2BE2",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3449/3449692.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
