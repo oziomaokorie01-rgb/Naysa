@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-    // Vercel automatically injects this securely on the server
     const apiKey = process.env.GEMINI_KEY; 
     
     if (!apiKey) {
@@ -12,25 +11,24 @@ export default async function handler(req, res) {
 
     try {
         const { promptText, inlineData, context, query } = req.body;
-        let payload = {};
+        let finalPrompt = "";
 
-        // If it's a direct chat query with context
+        // Format a single unified text prompt for Gemini to avoid payload confusion
         if (context || query) {
-            payload = {
-                contents: [{ parts: [{ text: `Context Material:\n${context || ""}\n\nStudent Question: ${query || ""}` }] }]
-            };
-        } 
-        // If it's an image/document extraction task
-        else {
-            payload = {
-                contents: [{
-                    parts: [
-                        { text: promptText },
-                        ...(inlineData ? [{ inlineData }] : [])
-                    ]
-                }]
-            };
+            finalPrompt = `You are Senseii, an intelligent, relatable study buddy tutor. Use the following context material to answer the student's question clearly.\n\nContext Material:\n${context || "None"}\n\nStudent Question: ${query}`;
+        } else {
+            finalPrompt = promptText || "Extract and read all text content verbatim.";
         }
+
+        // Build a highly reliable standard payload layout
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: finalPrompt },
+                    ...(inlineData ? [{ inlineData }] : [])
+                ]
+            }]
+        };
 
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
@@ -39,10 +37,11 @@ export default async function handler(req, res) {
         });
 
         const data = await geminiRes.json();
+        
+        // Send back the raw data to the frontend
         return res.status(200).json(data);
 
     } catch (error) {
         return res.status(500).json({ error: "Failed to connect to Gemini API backend." });
     }
 }
-
