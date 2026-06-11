@@ -228,7 +228,6 @@
 
                 status.innerText = "⏳ Cleaning layout data via secure proxy API...";
                 
-                // Routes through your new secure backend route
                 const backendRes = await fetch('/api/chat', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -424,10 +423,9 @@
                         const formData = new FormData();
                         formData.append("file", sampleFile);
 
-                        // Securely call the backend file handler setup for voice assets if needed
                         const uploadRes = await fetch("https://queue.fal.run/v1/files/upload", {
                             method: "POST",
-                            headers: { "Authorization": `Key ${getFalKey()}` }, // You can move this to a separate api file if voice cloning is highly used
+                            headers: { "Authorization": `Key ${getFalKey()}` }, 
                             body: formData
                         });
                         const uploadData = await uploadRes.json();
@@ -441,7 +439,6 @@
                     modelPayload.voice_preset = voiceChoice.replace("preset-", ""); 
                 }
 
-                // Call your new secure backend route for Fal.ai
                 const response = await fetch('/api/learn', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -530,7 +527,6 @@
             try {
                 const textContext = document.getElementById('notesInput').value;
 
-                // Send data directly to your serverless backend bridge
                 const response = await fetch('/api/chat', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -538,10 +534,15 @@
                 });
                 
                 const data = await response.json();
-                if(data.candidates && data.candidates[0].content.parts[0].text) {
+                
+                if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
                     responseBox.innerHTML = `<strong>Senseii Response:</strong><br>${data.candidates[0].content.parts[0].text}`;
+                } 
+                else if (data.error) {
+                    responseBox.innerHTML = `❌ <strong>Gemini API Error:</strong> ${data.error.message || "Invalid payload setup."}`;
                 } else {
-                    responseBox.innerHTML = "Could not parse clarification parameters.";
+                    responseBox.innerHTML = "❌ Structure parsed incorrectly. Check your console log parameters.";
+                    console.log("Unexpected Gemini structure return:", data);
                 }
             } catch(e) {
                 responseBox.innerHTML = "Network connection fault during safe processing pipeline.";
@@ -549,5 +550,4 @@
         }
     </script>
 </body>
-                  </html>
-  
+</html>
