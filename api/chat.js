@@ -1,8 +1,9 @@
 export default async function handler(req, res) {
+    // This pulls YOUR key from your Vercel Dashboard Environment Variables safely
     const apiKey = process.env.GEMINI_KEY; 
     
     if (!apiKey) {
-        return res.status(500).json({ error: "Gemini API Key is missing on Vercel dashboard." });
+        return res.status(500).json({ error: "Gemini API Key is missing on the Vercel server." });
     }
 
     if (req.method !== 'POST') {
@@ -10,7 +11,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { promptText, inlineData, context, query } = req.body;
+        const { context, query, inlineData, promptText } = req.body;
         let finalPrompt = "";
 
         if (context || query) {
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
             }]
         };
 
-        // FIXED: Switched endpoint to v1 stable and added model parameters cleanly
+        // FIXED: Switched to the correct stable v1 endpoint so it works out of the box
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -36,9 +37,14 @@ export default async function handler(req, res) {
         });
 
         const data = await geminiRes.json();
+        
+        if (data.error) {
+            return res.status(400).json({ error: data.error.message });
+        }
+
         return res.status(200).json(data);
 
     } catch (error) {
-        return res.status(500).json({ error: "Failed to connect to Gemini API backend." });
+        return res.status(500).json({ error: "Failed to connect to Gemini API backend pipeline." });
     }
 }
