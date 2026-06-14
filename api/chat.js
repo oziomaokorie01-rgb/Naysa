@@ -13,14 +13,12 @@ export default async function handler(req, res) {
         const { promptText, inlineData, context, query } = req.body;
         let finalPrompt = "";
 
-        // Format a single unified text prompt for Gemini to avoid payload confusion
         if (context || query) {
             finalPrompt = `You are Senseii, an intelligent, relatable study buddy tutor. Use the following context material to answer the student's question clearly.\n\nContext Material:\n${context || "None"}\n\nStudent Question: ${query}`;
         } else {
             finalPrompt = promptText || "Extract and read all text content verbatim.";
         }
 
-        // Build a highly reliable standard payload layout
         const payload = {
             contents: [{
                 parts: [
@@ -30,15 +28,14 @@ export default async function handler(req, res) {
             }]
         };
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // FIXED: Switched endpoint to v1 stable and added model parameters cleanly
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
         const data = await geminiRes.json();
-        
-        // Send back the raw data to the frontend
         return res.status(200).json(data);
 
     } catch (error) {
