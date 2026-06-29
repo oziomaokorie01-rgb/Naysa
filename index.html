@@ -4,597 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Senseii Hybrid Tutor</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-        body { background-color: #1A1A1E; color: #EAEAEA; font-family: system-ui, sans-serif; }
-        .purple-border { border: 1px solid #8A2BE2; }
-        .purple-bg { background-color: #8A2BE2; }
-        .dark-input { background-color: #25252B; color: #FFFFFF; }
-        .tab-active { border-bottom: 2px solid #8A2BE2; color: #8A2BE2; }
-        audio::-webkit-media-controls-panel { background-color: #25252B; }
-        audio::-webkit-media-controls-current-time-display,
-        audio::-webkit-media-controls-time-remaining-display { color: #FFFFFF; }
-        
-        /* Failsafe Hidden Inputs Fix: Solves mobile OS click-jacking security blocks */
-        .secure-hidden-input {
-            position: absolute !important;
-            width: 1px !important;
-            height: 1px !important;
-            padding: 0 !important;
-            margin: -1px !important;
-            overflow: hidden !important;
-            clip: rect(0, 0, 0, 0) !important;
-            white-space: nowrap !important;
-            border: 0 !important;
-            opacity: 0 !important;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="p-4 max-w-lg mx-auto pb-12">
+<body class="p-4 max-w-md mx-auto min-h-screen flex flex-col justify-between">
 
-    <header class="text-center my-6">
-        <h1 class="text-3xl font-bold text-white">🇳🇬 Senseii Hybrid Tutor</h1>
-        <p class="text-gray-400 text-sm">Study With Easy-Peasy.AI Integration</p>
-    </header>
-
-    <div class="bg-[#25252B] p-4 rounded-xl mb-6 border border-gray-700">
-        <h3 class="text-sm font-semibold mb-2 text-purple-400">🎛️ Connectivity Control</h3>
-        <div class="flex gap-4">
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="networkMode" value="online" checked onclick="toggleMode('online')"> 
-                <span>🌐 Online Mode</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="networkMode" value="offline" onclick="toggleMode('offline')"> 
-                <span>🔌 Offline Mode</span>
-            </label>
-        </div>
-    </div>
-
-    <div class="mb-4 relative z-10">
-        <div class="flex border-b border-gray-700 mb-4 text-xs font-medium overflow-x-auto whitespace-nowrap">
-            <button id="tab-text" class="flex-1 py-2 px-2 text-center tab-active" onclick="switchTab('text')">✍️ Text</button>
-            <button id="tab-pdf" class="flex-1 py-2 px-2 text-center text-gray-400" onclick="switchTab('pdf')">📄 Docs</button>
-            <button id="tab-img" class="flex-1 py-2 px-2 text-center text-gray-400" onclick="switchTab('img')">📸 Pictures</button>
-            <button id="tab-url" class="flex-1 py-2 px-2 text-center text-gray-400" onclick="switchTab('url')">🌐 Links</button>
-        </div>
-
-        <div id="panel-text" class="block space-y-2">
-            <textarea id="notesInput" class="w-full h-40 p-3 rounded-lg dark-input purple-border focus:outline-none text-sm" placeholder="Pasted text, extracted PDFs, or website summaries will display here automatically..."></textarea>
-            <div id="processingStatus" class="text-xs text-purple-300 font-medium italic"></div>
-        </div>
-
-        <div id="panel-pdf" class="hidden pointer-events-auto">
-            <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-purple-500 bg-[#25252B] relative z-20" onclick="triggerDocumentClick(event)">
-                <input type="file" id="documentFile" accept="application/pdf, text/plain" class="secure-hidden-input" onchange="handleDocumentUpload(event)">
-                <span class="text-gray-300 text-sm block font-medium pointer-events-none">📄 Tap Here to Select Document</span>
-                <span class="text-gray-500 text-xs block mt-1 pointer-events-none">(Supports PDF or Plain TXT notes)</span>
+    <div>
+        <header class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-xs font-bold tracking-widest text-gray-500 uppercase">NAYSA ecosystem</h1>
+                <h2 class="text-xl font-extrabold text-white">Senseii Hybrid Tutor</h2>
             </div>
-        </div>
+            <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                <input type="checkbox" id="networkToggle" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                <span class="ml-2 text-xs font-medium text-gray-400" id="networkStatusLabel">Online</span>
+            </label>
+        </header>
 
-        <div id="panel-img" class="hidden pointer-events-auto">
-            <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-purple-500 bg-[#25252B] relative z-20" onclick="triggerImageClick(event)">
-                <input type="file" id="imgFile" accept="image/*" capture="environment" class="secure-hidden-input" onchange="handleImageUpload(event)">
-                <span class="text-gray-300 text-sm block font-medium pointer-events-none">📸 Tap Here to Take/Upload Photo</span>
-                <span class="text-gray-500 text-xs block mt-1 pointer-events-none">(Extract handwritten notes or book images)</span>
-            </div>
-        </div>
-
-        <div id="panel-url" class="hidden space-y-2">
-            <div class="bg-[#25252B] p-4 rounded-lg border border-gray-700 space-y-3">
-                <span class="text-xs text-gray-400 block">Paste an internet article link below:</span>
-                <input type="url" id="urlInput" class="w-full p-2 rounded dark-input border border-gray-700 focus:outline-none text-xs" placeholder="https://example.com/article-to-read">
-                <button class="w-full purple-bg text-white font-bold py-2 text-xs rounded-lg transition active:scale-95" onclick="fetchWebsiteContent()">
-                    🔗 Extract & Read Article
+        <main class="bg-[#252529] rounded-2xl shadow-xl overflow-hidden border border-gray-800 mb-6">
+            <nav class="flex border-b border-gray-800 bg-[#1F1F23]">
+                <button id="tab-text" class="tab-btn flex-1 py-3 text-center text-sm font-semibold tab-active flex flex-col items-center gap-1">
+                    <span>✍️</span><span class="text-xs">Text</span>
                 </button>
+                <button id="tab-docs" class="tab-btn flex-1 py-3 text-center text-sm font-semibold text-gray-400 flex flex-col items-center gap-1">
+                    <span>📄</span><span class="text-xs">Docs</span>
+                </button>
+                <button id="tab-pics" class="tab-btn flex-1 py-3 text-center text-sm font-semibold text-gray-400 flex flex-col items-center gap-1">
+                    <span>📸</span><span class="text-xs">Pictures</span>
+                </button>
+                <button id="tab-links" class="tab-btn flex-1 py-3 text-center text-sm font-semibold text-gray-400 flex flex-col items-center gap-1">
+                    <span>🌐</span><span class="text-xs">Links</span>
+                </button>
+            </nav>
+
+            <div class="p-4">
+                <div id="textTab" class="tab-content">
+                    <textarea id="notesInput" class="w-full h-40 bg-[#1A1A1E] text-gray-200 p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-purple-accent resize-none placeholder-gray-500 text-sm" placeholder="Type or paste your study notes here... This context will feed your tutor session."></textarea>
+                </div>
+
+                <div id="docsTab" class="tab-content hidden">
+                    <div class="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center hover:border-purple-accent transition-colors">
+                        <input type="file" id="docFile" accept=".pdf,.txt" class="hidden">
+                        <label for="docFile" class="cursor-pointer block text-sm text-gray-400" onclick="event.stopPropagation()">
+                            <p class="text-2xl mb-2">📥</p>
+                            <p class="font-medium text-gray-300">Upload PDF or TXT</p>
+                            <p class="text-xs text-gray-500 mt-1" id="docFileName">No file selected</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="picsTab" class="tab-content hidden">
+                    <div class="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center hover:border-purple-accent transition-colors">
+                        <input type="file" id="picFile" accept="image/*" capture="environment" class="hidden">
+                        <label for="picFile" class="cursor-pointer block text-sm text-gray-400" onclick="event.stopPropagation()">
+                            <p class="text-2xl mb-2">📸</p>
+                            <p class="font-medium text-gray-300">Upload or Take Photo</p>
+                            <p class="text-xs text-gray-500 mt-1" id="picFileName">No image snapshot loaded</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="linksTab" class="tab-content hidden">
+                    <div class="flex flex-col gap-2">
+                        <input type="url" id="linkUrl" class="w-full bg-[#1A1A1E] text-sm text-gray-200 p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-purple-accent" placeholder="https://example.com/study-guide">
+                        <button id="extractLinkBtn" class="bg-purple-accent hover:opacity-90 text-white font-medium py-2 rounded-xl text-xs transition-opacity">Extract Content</button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        </main>
 
-    <div class="bg-[#25252B] p-4 rounded-xl mb-6 purple-border space-y-4 relative z-10">
-        <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1">TUTOR PERSONA</label>
-            <select id="persona" class="w-full p-2 rounded dark-input border border-gray-700 text-sm">
-                <option>Normal Tone</option>
-                <option>Strict Nigerian Lecturer Mode</option>
-                <option>Big Brother/Sister Encouragement</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1">VOICE SELECTION (EASY-PEASY.AI)</label>
-            <select id="voiceChoice" class="w-full p-2 rounded dark-input border border-gray-700 text-sm mb-2">
-                <option value="21m00Tcm4TlvDq8ikWAM">🎙️ Standard Crisp Narrator (Rachel)</option>
-                <option value="AZnzlk1XvdvUeBnXmlld">🎙️ Clear Male Guide (Domi)</option>
-                <option value="EXAVITQu4vr4xnSDxMaL">🎙️ Energetic Mentor (Bella)</option>
-                <option value="ErXwobaYiN019vkySvjV">🎙️ Academic Lecturer (Antoni)</option>
-            </select>
-        </div>
-    </div>
+        <section class="bg-[#252529] rounded-2xl p-4 border border-gray-800 mb-6">
+            <h3 class="text-sm font-bold text-gray-400 mb-3 tracking-wide uppercase">💡 Tutors & Voice Config</h3>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Tutor Persona</label>
+                    <select id="tutorPersona" class="w-full bg-[#1A1A1E] text-xs text-gray-200 p-2.5 rounded-lg border border-gray-700 focus:outline-none" onclick="event.stopPropagation()">
+                        <option value="Normal">Normal</option>
+                        <option value="Strict Nigerian Lecturer Mode">Strict Nigerian Lecturer</option>
+                        <option value="Big Brother/Sister Encouragement">Big Brother/Sister</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Voice Character</label>
+                    <select id="voiceCharacter" class="w-full bg-[#1A1A1E] text-xs text-gray-200 p-2.5 rounded-lg border border-gray-700 focus:outline-none" onclick="event.stopPropagation()">
+                        <option value="Idera">Idera (Melodic)</option>
+                        <option value="Emma">Emma (Deep/Authoritative)</option>
+                        <option value="Zainab">Zainab (Soothing)</option>
+                        <option value="Osagie">Osagie (Smooth)</option>
+                    </select>
+                </div>
+            </div>
 
-    <button class="w-full purple-bg text-white font-bold py-3 px-4 rounded-xl shadow-lg transition transform active:scale-95 mb-4 text-base relative z-10" onclick="startLearning()">
-        🚀 Start Learning Session
-    </button>
-
-    <div id="audioOutputDeck" class="hidden bg-[#25252B] p-4 rounded-xl mb-6 border border-purple-500 text-center space-y-3 relative z-10">
-        <span class="text-xs font-bold text-purple-300 block">🎧 Senseii Audio Lesson Ready</span>
-        
-        <audio id="audioPlayer" controls class="w-full mt-1"></audio>
-        
-        <div class="flex justify-center gap-2 mt-1">
-            <button class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold py-2 px-3 rounded-lg active:scale-95 transition" onclick="pauseAudio()">
-                ⏸️ Pause
+            <button id="startSessionBtn" class="w-full bg-purple-accent hover:opacity-90 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-lg flex justify-center items-center gap-2">
+                <span>🚀</span> Start Learning Session
             </button>
-            <button class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-3 rounded-lg active:scale-95 transition" onclick="resumeAudio()">
-                ▶️ Play
-            </button>
-            <button class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded-lg active:scale-95 transition" onclick="stopAudio()">
-                ⏹️ Stop
-            </button>
-        </div>
-        
-        <div id="voiceListeningStatus" class="text-[10px] text-green-400 font-medium animate-pulse hidden">🎙️ Listening for: "I don't understand the last line"...</div>
+
+            <div class="mt-4 bg-[#1A1A1E] rounded-xl p-3 border border-gray-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs bg-[#252529] p-2 rounded-lg" id="audioStateIcon">⏹️</span>
+                    <div>
+                        <p class="text-xs font-bold text-gray-300" id="audioTrackTitle">Senseii Audio Deck</p>
+                        <p class="text-[10px] text-gray-500" id="audioTrackStatus">Idle</p>
+                    </div>
+                </div>
+                <div class="flex gap-1">
+                    <button id="audioPlayBtn" class="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg text-xs" title="Play">▶️</button>
+                    <button id="audioPauseBtn" class="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg text-xs" title="Pause">⏸️</button>
+                    <button id="audioStopBtn" class="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg text-xs" title="Stop">⏹️</button>
+                </div>
+                <audio id="hiddenAudioDeck" class="hidden"></audio>
+            </div>
+        </section>
+
+        <section class="bg-[#252529] rounded-2xl p-4 border border-gray-800 mb-6">
+            <h3 class="text-sm font-bold text-gray-400 mb-2 tracking-wide uppercase">📖 Offline Local Dictionary</h3>
+            <div class="relative">
+                <input type="text" id="dictSearch" placeholder="Type a tricky word..." class="w-full bg-[#1A1A1E] text-xs text-gray-200 p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-purple-accent" onclick="event.stopPropagation()">
+                <span id="dbStatus" class="absolute right-3 top-3.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-400">Syncing DB...</span>
+            </div>
+            <div id="dictResult" class="mt-2 text-xs text-gray-400 bg-[#1A1A1E] p-3 rounded-xl hidden max-h-24 overflow-y-auto"></div>
+        </section>
     </div>
 
-    <div class="bg-[#25252B] p-4 rounded-xl mb-6 border border-gray-700 relative z-10">
-        <h3 class="text-sm font-semibold mb-2 text-purple-400">📖 True Offline Dictionary (Expanded Dataset)</h3>
-        <input type="text" id="dictInput" class="w-full p-2 rounded dark-input border border-gray-700 mb-2 text-sm" placeholder="Type a tricky word..." oninput="lookupWord()">
-        <div id="dictStatus" class="text-[10px] text-purple-300 mb-1 italic"></div>
-        <div id="dictOutput" class="text-xs text-gray-400 italic max-h-32 overflow-y-auto"></div>
-    </div>
-
-    <div class="border-t border-gray-800 pt-4 relative z-10">
-        <h3 class="text-lg font-bold text-white mb-2">💬 Ask Senseii</h3>
+    <footer id="geminiSection" class="bg-[#252529] rounded-2xl p-4 border border-gray-800 mt-auto">
+        <h3 class="text-sm font-bold text-gray-400 mb-2 tracking-wide uppercase">💬 Ask Senseii</h3>
         <div class="flex gap-2">
-            <input type="text" id="chatInput" class="flex-1 p-3 rounded-lg dark-input purple-border focus:outline-none text-sm" placeholder="Ask to simplify a concept...">
-            <button class="purple-bg px-4 rounded-lg font-bold text-sm" onclick="sendChat()">Ask</button>
+            <input type="text" id="geminiQuery" placeholder="Ask anything about your notes..." class="flex-grow bg-[#1A1A1E] text-xs text-gray-200 p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-purple-accent" onclick="event.stopPropagation()">
+            <button id="askGeminiBtn" class="bg-purple-accent hover:opacity-90 text-white font-bold px-4 rounded-xl text-xs transition-opacity flex items-center justify-center">Ask</button>
         </div>
-        <div id="chatResponse" class="mt-3 text-sm text-gray-300 p-3 bg-[#25252B] rounded-lg hidden"></div>
-    </div>
+        <div id="geminiResponse" class="mt-3 text-xs text-gray-300 bg-[#1A1A1E] p-3 rounded-xl hidden max-h-32 overflow-y-auto border border-gray-800"></div>
+    </footer>
 
-    <script>
-        const getGeminiKey = () => window.env?.GEMINI_KEY || "";
-        const getEasyPeasyKey = () => window.env?.EASY_PEASY_KEY || "";
-
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-
-        // --- FIXED UPLOAD CLICK WRAPPERS (With stopPropagation Failsafe) ---
-        function triggerDocumentClick(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const input = document.getElementById('documentFile');
-            if(input) input.click();
-        }
-
-        function triggerImageClick(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const input = document.getElementById('imgFile');
-            if(input) input.click();
-        }
-
-        // --- AUDIO NAVIGATION HUD CONTROL METHODS ---
-        function pauseAudio() { document.getElementById("audioPlayer").pause(); }
-        function resumeAudio() { document.getElementById("audioPlayer").play(); }
-        function stopAudio() {
-            const player = document.getElementById("audioPlayer");
-            player.pause();
-            player.currentTime = 0;
-        }
-
-        // --- LIVE SPEECH RECOGNITION INTERRUPT ENGINE ---
-        let recognition;
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechObj = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechObj();
-            recognition.continuous = true;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onresult = function(event) {
-                const resultIndex = event.resultIndex;
-                const transcript = event.results[resultIndex][0].transcript.toLowerCase().trim();
-                if (transcript.includes("i don't understand") || transcript.includes("explain the last line") || transcript.includes("i do not understand")) {
-                    handleVoiceInterruptTrigger();
-                }
-            };
-
-            recognition.onerror = () => console.log("Voice channel resetting...");
-            recognition.onend = () => {
-                if (!document.getElementById("audioPlayer").paused) recognition.start();
-            };
-        }
-
-        function handleVoiceInterruptTrigger() {
-            stopAudio();
-            const chatInput = document.getElementById('chatInput');
-            chatInput.value = "Explain the core summary of this material simpler, I didn't catch the details.";
-            sendChat();
-            alert("🎙️ Voice Command Caught! Senseii paused playback to break down your notes below.");
-        }
-
-        function switchTab(tab) {
-            ['text', 'pdf', 'img', 'url'].forEach(t => {
-                document.getElementById(`panel-${t}`).classList.add('hidden');
-                document.getElementById(`panel-${t}`).classList.remove('block', 'space-y-2');
-                document.getElementById(`tab-${t}`).className = 'flex-1 py-2 text-center text-gray-400';
-            });
-            document.getElementById(`panel-${tab}`).classList.remove('hidden');
-            document.getElementById(`panel-${tab}`).classList.add('block', 'space-y-2');
-            document.getElementById(`tab-${tab}`).className = 'flex-1 py-2 text-center tab-active';
-        }
-
-        let globalMode = 'online';
-        function toggleMode(mode) {
-            globalMode = mode;
-            const chatInput = document.getElementById('chatInput');
-            if (mode === 'offline') {
-                alert("🔌 Offline Mode: Local offline engines engaged.");
-                chatInput.placeholder = "Chat requires cloud connection...";
-                chatInput.disabled = true;
-            } else {
-                chatInput.placeholder = "Ask to simplify a concept...";
-                chatInput.disabled = false;
-            }
-        }
-
-        // --- WEBSITE PARSING AGENT VIA PROXY ---
-        async function fetchWebsiteContent() {
-            const targetUrl = document.getElementById("urlInput").value.trim();
-            const status = document.getElementById("processingStatus");
-            const notesInput = document.getElementById("notesInput");
-            const apiKey = getGeminiKey();
-
-            if (!targetUrl) return alert("Abeg paste a valid link first!");
-            if (globalMode === 'offline') return alert("❌ Reading internet links requires Online Mode.");
-            if (!apiKey) return alert("❌ Missing Gemini Key configuration mapping.");
-
-            status.innerText = `⏳ Parsing webpage data fields safely through server matrices...`;
-            switchTab('text');
-
-            try {
-                const proxyResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
-                const proxyData = await proxyResponse.json();
-                
-                if (!proxyData.contents) {
-                    status.innerText = "❌ Infrastructure failed to pull raw document nodes from source link.";
-                    return;
-                }
-
-                status.innerText = "⏳ Cleaning layout elements using clean syntax models...";
-                
-                const payload = {
-                    contents: [{
-                        parts: [{ text: `Extract only the clear reading material copy or documentation body text layout lines from this web string code context:\n\n${proxyData.contents}` }]
-                    }]
-                };
-
-                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                const resData = await geminiRes.json();
-                if (resData.candidates && resData.candidates[0].content.parts[0].text) {
-                    notesInput.value = resData.candidates[0].content.parts[0].text;
-                    status.innerText = "✅ External documentation cleanly imported into console terminal.";
-                } else {
-                    status.innerText = "❌ Clean contextual text could not be pulled from page format structures.";
-                }
-            } catch (err) {
-                status.innerText = "❌ Structural proxy handshake timeout occurred.";
-                console.error(err);
-            }
-        }
-
-        // --- NATIVE FILE PARSING MANAGEMENT ---
-        async function handleDocumentUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const status = document.getElementById("processingStatus");
-            const notesInput = document.getElementById("notesInput");
-            status.innerText = `⏳ Processing and scanning: ${file.name}...`;
-            switchTab('text');
-
-            if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    let extractedText = "";
-
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        const pageText = textContent.items.map(item => item.str).join(" ");
-                        extractedText += pageText + "\n";
-                    }
-
-                    notesInput.value = extractedText;
-                    status.innerText = `✅ Extraction finished (${pdf.numPages} document layers parsed).`;
-                } catch (err) {
-                    status.innerText = "❌ Problem reading active PDF code structure layers.";
-                }
-            } else {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    notesInput.value = e.target.result;
-                    status.innerText = "✅ Plaintext file content synchronized.";
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        async function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const status = document.getElementById("processingStatus");
-            if (globalMode === 'offline') {
-                status.innerText = "❌ Cloud link connections are required for optical media recognition processing pipelines.";
-                switchTab('text');
-                return;
-            }
-
-            status.innerText = "⏳ Exporting binary matrix blocks to Gemini Vision layers...";
-            switchTab('text');
-            processFileViaGemini(file, "Transcribe all visible technical text, text fields, or notes layout blocks from this image verbatim.");
-        }
-
-        async function processFileViaGemini(file, promptText) {
-            const status = document.getElementById("processingStatus");
-            const notesInput = document.getElementById("notesInput");
-            const apiKey = getGeminiKey();
-
-            if (!apiKey) {
-                status.innerText = "❌ Missing Gemini verification parameter token variables.";
-                return;
-            }
-
-            try {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onloadend = async function() {
-                    const base64Data = reader.result.split(',')[1];
-                    const payload = {
-                        contents: [{
-                            parts: [
-                                { text: promptText },
-                                { inlineData: { mimeType: file.type || "application/octet-stream", data: base64Data } }
-                            ]
-                        }]
-                    };
-
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const resData = await response.json();
-                    if (resData.candidates && resData.candidates[0].content.parts[0].text) {
-                        notesInput.value = resData.candidates[0].content.parts[0].text;
-                        status.innerText = "✅ Picture visual data successfully parsed.";
-                    } else {
-                        status.innerText = "❌ Vision matrix dropped layout text parsing profiles.";
-                    }
-                };
-            } catch (err) {
-                status.innerText = "❌ Server timeout processing raw visual data structures.";
-            }
-        }
-
-        // --- INDEXEDDB REAL OFFLINE DICTIONARY ---
-        let db;
-        const dbStatus = document.getElementById("dictStatus");
-        const dbRequest = window.indexedDB.open("SenseiiCompleteDB", 1);
-
-        dbRequest.onupgradeneeded = function(event) {
-            db = event.target.result;
-            if (!db.objectStoreNames.contains("dictionary")) {
-                db.createObjectStore("dictionary", { keyPath: "word" });
-            }
-        };
-
-        dbRequest.onsuccess = function(event) {
-            db = event.target.result;
-            checkAndSeedDictionary();
-        };
-
-        async function checkAndSeedDictionary() {
-            const transaction = db.transaction(["dictionary"], "readonly");
-            const store = transaction.objectStore("dictionary");
-            const countRequest = store.count();
-
-            countRequest.onsuccess = async function() {
-                if (countRequest.result === 0) {
-                    dbStatus.innerText = "Syncing expanded academic offline dictionary repository tables...";
-                    try {
-                        const response = await fetch("https://raw.githubusercontent.com/matthewreagan/Web-Words/master/words.json");
-                        const rawWordsArray = await response.json();
-                        
-                        const writeTransaction = db.transaction(["dictionary"], "readwrite");
-                        const writeStore = writeTransaction.objectStore("dictionary");
-                        
-                        rawWordsArray.forEach(item => {
-                            if (item.word && item.definition) {
-                                writeStore.put({ word: item.word.toLowerCase().trim(), definition: item.definition });
-                            }
-                        });
-                        dbStatus.innerText = "✅ Broader Offline Dictionary initialized successfully!";
-                    } catch (error) {
-                        dbStatus.innerText = "Fallback localized dictionary running standard weights profiles.";
-                    }
-                } else {
-                    dbStatus.innerText = `🔌 Broad Offline Database Engaged: ${countRequest.result} academic terms synchronized.`;
-                }
-            };
-        }
-
-        function lookupWord() {
-            const wordInput = document.getElementById('dictInput').value.toLowerCase().trim();
-            const output = document.getElementById('dictOutput');
-            
-            if (!wordInput) { output.innerText = ""; return; }
-            if (!db) { output.innerText = "Initialising data layouts..."; return; }
-
-            const transaction = db.transaction(["dictionary"], "readonly");
-            const store = transaction.objectStore("dictionary");
-            const request = store.get(wordInput);
-
-            request.onsuccess = function() {
-                if (request.result) {
-                    output.innerHTML = `<strong>Definition:</strong> ${request.result.definition}`;
-                } else {
-                    output.innerText = "Word not caught in local memory buffers.";
-                }
-            };
-        }
-
-        // --- NEW EASY-PEASY.AI VOICE SYNTHESIS PIPELINE ---
-        async function startLearning() {
-            const text = document.getElementById('notesInput').value.trim();
-            if (!text) return alert("Abeg upload a file or drop some text study material first!");
-
-            const status = document.getElementById("processingStatus");
-            const persona = document.getElementById("persona").value;
-            const voiceId = document.getElementById("voiceChoice").value;
-            const epKey = getEasyPeasyKey();
-
-            if (globalMode === 'offline') {
-                status.innerText = "🗣️ Executing local device text-to-speech runtime weights...";
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.95;
-                window.speechSynthesis.speak(utterance);
-                return;
-            }
-
-            if (!epKey) return alert("Missing EASY_PEASY_KEY configuration layers on Vercel Dashboard parameters.");
-
-            let introPrefix = "";
-            if (persona === "Strict Nigerian Lecturer Mode") introPrefix = "Look at your notes and listen closely o! ";
-            if (persona === "Big Brother/Sister Encouragement") introPrefix = "Relax your mind, you go pass this exam sharp-sharp. ";
-            const finalSpeechText = (introPrefix + text).slice(0, 40000); // Dynamic Failsafe Buffer Cap
-
-            status.innerText = "⏳ Requesting audio calculation streams from Easy-Peasy AI computing arrays...";
-            switchTab('text');
-
-            try {
-                const response = await fetch("https://easy-peasy.ai/api/generate-text-to-speech", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-api-key": epKey
-                    },
-                    body: JSON.stringify({
-                        voiceID: voiceId,
-                        text: finalSpeechText
-                    })
-                });
-
-                const resultData = await response.json();
-                
-                if (response.ok && resultData.url) {
-                    displayAudioOutput(resultData.url);
-                    status.innerText = "✅ Lesson compilation complete! Audio output loaded via Easy-Peasy.AI.";
-                } else {
-                    status.innerText = "❌ Server error processing audio layout synthesis configurations.";
-                    console.error("EasyPeasy Error:", resultData);
-                }
-            } catch (err) {
-                status.innerText = "❌ Network error reaching calculation pipeline modules.";
-                console.error(err);
-            }
-        }
-
-        function displayAudioOutput(url) {
-            const deck = document.getElementById("audioOutputDeck");
-            const player = document.getElementById("audioPlayer");
-            const micIndicator = document.getElementById("voiceListeningStatus");
-            
-            deck.classList.remove("hidden");
-            player.src = url;
-            player.load();
-            
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'Senseii Audio Lesson AI',
-                    artist: 'Senseii Hybrid Tutor',
-                    album: 'Easy-Peasy Audio Matrix'
-                });
-                navigator.mediaSession.setActionHandler('play', () => player.play());
-                navigator.mediaSession.setActionHandler('pause', () => player.pause());
-            }
-
-            player.onplay = () => {
-                if (recognition) {
-                    try { recognition.start(); } catch(e){}
-                    micIndicator.classList.remove("hidden");
-                }
-            };
-
-            player.onpause = () => {
-                if (recognition) {
-                    recognition.stop();
-                    micIndicator.classList.add("hidden");
-                }
-            };
-
-            player.play().catch(e => console.log("Device click target interaction safeguard activated."));
-        }
-
-        // --- FIXED CRASH-PROOF ASK SENSEII SYSTEM (Using JSON Serialization Failsafe) ---
-        async function sendChat() {
-            const query = document.getElementById('chatInput').value.trim();
-            const responseBox = document.getElementById('chatResponse');
-            if (!query) return;
-
-            responseBox.classList.remove('hidden');
-            responseBox.innerHTML = "💡 <em>Senseii processing question parameters via cloud pipelines...</em>";
-            
-            const apiKey = getGeminiKey();
-            if (!apiKey) {
-                responseBox.innerHTML = "❌ Missing Gemini key environment setups inside Vercel Dashboard configurations.";
-                return;
-            }
-
-            try {
-                const textContext = document.getElementById('notesInput').value.trim();
-                
-                // Secure structural payload using robust string serialization
-                const payload = {
-                    contents: [{
-                        parts: [{ 
-                            text: `Context Material Notes:\n\n${textContext}\n\nStudent Question: ${query}`
-                        }]
-                    }]
-                };
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                    method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const data = await response.json();
-                
-                if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-                    responseBox.innerHTML = `<strong>Senseii Response:</strong><br><div class="mt-1 whitespace-pre-line text-xs leading-relaxed text-gray-200">${data.candidates[0].content.parts[0].text}</div>`;
-                } else {
-                    responseBox.innerHTML = `❌ <strong>API Structure Block:</strong> Unexpected payload configuration framework returned. Check internal terminal data parameters.`;
-                    console.error("Gemini Platform Error Data Dump:", data);
-                }
-            } catch(e) {
-                responseBox.innerHTML = "❌ Network connection fault or terminal handshake timeout during prompt processing.";
-                console.error(e);
-            }
-        }
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/audioEngine.js"></script>
+    <script src="js/geminiService.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
