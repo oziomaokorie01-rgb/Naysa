@@ -1,0 +1,4 @@
+window.env = {
+    GEMINI_KEY: "AIzaSyAwtt1riturT8ZWT-eNShZVXTOv2S4XEE0",
+    YARNGPT_API_KEY: "sk_live_gziG_0kslqfRIIn_SHPUisEDjG8OYkoGc1yLLfC5h_A"
+};
