@@ -1,0 +1,16 @@
+body {
+    background-color: #1A1A1E;
+    color: #E5E7EB;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.accent-purple { color: #8A2BE2; }
+.bg-purple-accent { background-color: #8A2BE2; }
+.border-purple-accent { border-color: #8A2BE2; }
+.tab-active {
+    border-bottom: 3px solid #8A2BE2;
+    color: #8A2BE2;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1A1A1E; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #8A2BE2; }
