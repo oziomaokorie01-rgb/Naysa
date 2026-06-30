@@ -21,23 +21,22 @@ const AudioEngine = {
             window.speechSynthesis.speak(utterance);
             this.syncMediaSession("Native Offline Audio");
         } else {
-            this.updateWidget("🔄", "YarnGPT AI Engine", "Streaming Voice...");
-            const apiKey = window.env?.YARNGPT_API_KEY;
+            this.updateWidget("🔄", "YarnGPT Proxy Engine", "Streaming Voice...");
+            
+            // Route through local secure backend layer
+            const backendEndpoint = "http://localhost:5000/api/tts";
 
             try {
-                const response = await fetch("https://yarngpt.ai/api/v1/tts", {
+                const response = await fetch(backendEndpoint, {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${apiKey}`,
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         text: structuralPrompt,
                         voice: voice.toLowerCase()
                     })
                 });
 
-                if(!response.ok) throw new Error("Network drop or invalid token.");
+                if(!response.ok) throw new Error("Local proxy dropped or reported failure code.");
                 
                 const blob = await response.blob();
                 this.audioElement.src = URL.createObjectURL(blob);
@@ -47,8 +46,7 @@ const AudioEngine = {
                 this.syncMediaSession(`Senseii Class (${voice})`);
             } catch (err) {
                 console.error(err);
-                alert("YarnGPT failed. Falling back to native device speech.");
-                // Switch application context directly
+                alert("YarnGPT proxy stream failed. Dropping back down onto client device voice synthesis framework.");
                 document.getElementById('networkToggle').click();
             }
         }

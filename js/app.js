@@ -1,19 +1,65 @@
 document.addEventListener('DOMContentLoaded', () => {
     let localDB = null;
 
-    // 1. SPIN UP WEB WORKER FOR DICTIONARY SEEDING
-    const dictWorker = new Worker('dictWorker.js');
-    dictWorker.postMessage({ action: 'INITIALIZE_DB' });
-    dictWorker.onmessage = function(e) {
-        if (e.data.status === 'READY') {
-            document.getElementById('dbStatus').innerText = "Ready 🟢";
-            // Open read instance connection for instant typing UI lookup
-            const req = indexedDB.open("SenseiiCompleteDB", 1);
-            req.onsuccess = (evt) => { localDB = evt.target.result; };
-        }
-    };
+    // --- STREAMLINED LOCAL INDEXEDDB DICTIONARY INITIALIZER ---
+    function initDirectDictionary() {
+        const statusLabel = document.getElementById('dbStatus');
+        const request = indexedDB.open("SenseiiCompleteDB", 2);
 
-    // 2. MOBILE TAP ISOLATION & TAB MANAGER
+        request.onupgradeneeded = function(evt) {
+            let dbInstance = evt.target.result;
+            if (!dbInstance.objectStoreNames.contains("words")) {
+                dbInstance.deleteObjectStore("words");
+        }
+                dbInstance.createObjectStore("words", { keyPath: "word" });
+                console.log("🔄 Database schema upgraded to Version 2 cleanly.");
+    
+        };
+
+        request.onsuccess = function(evt) {
+            localDB = evt.target.result;
+            
+            // Check if dictionary records already exist
+            const transaction = localDB.transaction(["words"], "readonly");
+            const countRequest = transaction.objectStore("words").count();
+
+            countRequest.onsuccess = async function() {
+                if (countRequest.result === 0) {
+                    try {
+                        statusLabel.innerText = "Downloading...";
+                        const res = await fetch("https://raw.githubusercontent.com/matthewreagan/Web-Words/master/words.json");
+                        const rawData = await res.json();
+
+                        statusLabel.innerText = "Saving Local...";
+                        const writeTx = localDB.transaction(["words"], "readwrite");
+                        const writeStore = writeTx.objectStore("words");
+
+                        Object.keys(rawData).forEach(key => {
+                            writeStore.put({ word: key.toLowerCase(), definition: rawData[key] });
+                        });
+
+                        writeTx.oncomplete = () => {
+                            statusLabel.innerText = "Ready 🟢";
+                        };
+                    } catch (err) {
+                        console.error(err);
+                        statusLabel.innerText = "Offline Cache Only";
+                    }
+                } else {
+                    statusLabel.innerText = "Ready 🟢";
+                }
+            };
+        };
+
+        request.onerror = function() {
+            statusLabel.innerText = "DB Locked ❌";
+        };
+    }
+
+    // Initialize local dictionary setup immediately
+    initDirectDictionary();
+
+    // --- MOBILE TAP ISOLATION & TAB MANAGER ---
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -29,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. FILE / CONTENT EXTRACTORS
+    // --- FILE / CONTENT EXTRACTORS ---
     document.getElementById('docFile').addEventListener('change', (e) => {
         e.stopPropagation();
         const file = e.target.files[0];
@@ -44,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = e.target.files[0];
         if (file) {
             document.getElementById('picFileName').innerText = file.name;
-            document.getElementById('notesInput').value += `\n[Image Context]: Embedded snapshot snapshot verified.`;
+            document.getElementById('notesInput').value += `\n[Image Context]: Embedded snapshot verified.`;
         }
     });
 
@@ -52,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const url = document.getElementById('linkUrl').value;
         if(!url) return alert("Please specify a URL link structure first.");
-        document.getElementById('notesInput').value += `\nhttps://www.merriam-webster.com/dictionary/context: Mock stream content successfully scraped from ${url}.`;
+        document.getElementById('notesInput').value += `\nhttps://www.merriam-webster.com/dictionary/context: Mock content successfully reading from ${url}.`;
     });
 
-    // 4. AUDIO DECK TRIGGERS
+    // --- AUDIO DECK TRIGGERS ---
     document.getElementById('startSessionBtn').addEventListener('click', (e) => {
         e.stopPropagation();
         const text = document.getElementById('notesInput').value;
@@ -70,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('audioPauseBtn').addEventListener('click', (e) => { e.stopPropagation(); AudioEngine.control('pause'); });
     document.getElementById('audioStopBtn').addEventListener('click', (e) => { e.stopPropagation(); AudioEngine.control('stop'); });
 
-    // 5. LOCAL DICTIONARY TYPING ENGINE
+    // --- LOCAL DICTIONARY TYPING ENGINE ---
     document.getElementById('dictSearch').addEventListener('input', (e) => {
         e.stopPropagation();
         const term = e.target.value.trim().toLowerCase();
@@ -89,13 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultBox.innerHTML = `<strong>${term}:</strong> ${req.result.definition}`;
                 resultBox.classList.remove('hidden');
             } else {
-                resultBox.innerHTML = `<span class="text-gray-600">Word parameters not matched.</span>`;
+                resultBox.innerHTML = `<span class="text-gray-500">Word not stored in local DB.</span>`;
                 resultBox.classList.remove('hidden');
             }
         };
     });
 
-    // 6. SAFE GEMINI COMMUNICATOR
+    // --- SAFE GEMINI COMMUNICATOR ---
     document.getElementById('askGeminiBtn').addEventListener('click', (e) => {
         e.stopPropagation();
         const prompt = document.getElementById('geminiQuery').value;
@@ -104,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         GeminiService.query(prompt, context);
     });
 
-    // 7. OFFLINE SWITCH INTEGRATOR
+    // --- OFFLINE SWITCH INTEGRATOR ---
     document.getElementById('networkToggle').addEventListener('change', (e) => {
         const activeOffline = e.target.checked;
         const geminiBox = document.getElementById('geminiSection');

@@ -4,9 +4,9 @@ const GeminiService = {
         displayResponse.innerHTML = "⌛ Thinking...";
         displayResponse.classList.remove('hidden');
 
-        const apiKey = window.env?.GEMINI_KEY;
+        // Target your local secure backend route directly
+        const backendEndpoint = "http://localhost:5000/api/ask-senseii";
 
-        // Tightly wrap inside JSON stringify serialization to safeguard payloads
         const safePayload = JSON.stringify({
             contents: [{
                 parts: [{
@@ -16,7 +16,7 @@ const GeminiService = {
         });
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(backendEndpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: safePayload
@@ -27,7 +27,7 @@ const GeminiService = {
             displayResponse.innerHTML = `<strong>Senseii:</strong> ${reply}`;
         } catch (err) {
             console.error(err);
-            displayResponse.innerHTML = `<span class="text-red-400">Error transmitting parameters securely to Gemini endpoints.</span>`;
+            displayResponse.innerHTML = `<span class="text-red-400">Error transferring data via proxy framework layer.</span>`;
         }
     }
 };
